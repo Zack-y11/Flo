@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FAF6EE;
+  --color-ink: #2C2416;
+  --color-sage: #3E6B4A;
+  --color-sand: #E7DCC8;
+}
+
+html,
+body {
+  margin: 0;
+  background: #FAF6EE;
+  color: #2C2416;
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+}

@@ -153,6 +153,8 @@ export const crops = deepFreeze({
 
 export type CropId = keyof typeof crops
 
+export const CROP_IDS = Object.freeze(Object.keys(crops) as CropId[])
+
 export type CropTrait = AnnualTrait | PerennialTrait
 
 export const TRAIT_SOURCE = deepFreeze({

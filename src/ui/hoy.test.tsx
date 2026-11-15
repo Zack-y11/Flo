@@ -1,6 +1,14 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
-import type { CropId, PhaseMark, TodayCard } from '@/domain/calendar'
+import {
+  cycleStatus,
+  scoreMonth,
+  todayCard,
+  type AdviceInput,
+  type CropId,
+  type MonthNo,
+  type TodayCard,
+} from '@/domain/calendar'
 import { Hoy } from './siembra-ahora'
 
 afterEach(() => {
@@ -16,22 +24,35 @@ const cropLabels: Record<CropId, string> = {
   canavalia: 'Canavalia',
 }
 
-const mark: PhaseMark = {
-  phase: 'seca',
-  label: 'seca',
-  dayOfPhase: 15,
-  daysUntilEnd: 166,
-}
+test('Hoy renders dry-season advice for 15 Nov 2026 with the maize oracle climatology', () => {
+  const dryMonth = (month: MonthNo) => ({
+    month,
+    t2mC: 21,
+    prectotcorrMmDay: 0,
+    solarMj: 0,
+    rhPct: 0,
+    gwetroot: 0,
+    gwettop: 0,
+  })
+  const january = { ...dryMonth(1), t2mC: 24, prectotcorrMmDay: 100 / 31 }
+  const input: AdviceInput = {
+    today: { year: 2026, month: 11, day: 15 },
+    climatology: {
+      months: [
+        january, dryMonth(2), dryMonth(3), dryMonth(4), dryMonth(5), dryMonth(6),
+        dryMonth(7), dryMonth(8), dryMonth(9), dryMonth(10), dryMonth(11), dryMonth(12),
+      ],
+    },
+    soil: { status: 'measured', origin: 'pin', ph: 6.5, socGkg: 0, clayPct: 0, sandPct: 0, nitrogenGkg: 0 },
+    whatIf: { dT: 0, rainFactor: 1 },
+    daily: null,
+    logs: [],
+    lang: 'es',
+  }
+  expect(scoreMonth('maiz', january, input.soil, input.whatIf).band).toBe('green')
+  const card = todayCard(input)
+  const status = cycleStatus(input)
 
-const waitCard: TodayCard = {
-  kind: 'wait',
-  cropId: 'frijol',
-  suit: 'yellow',
-  reason: 'seca',
-  sentence: 'Esperá unos días. Ahora es época seca. La próxima siembra es la Primera, en mayo.',
-}
-
-test('Hoy shows the domain status and sends its advice to speech and registration', () => {
   const speak = vi.fn()
   const cancel = vi.fn()
   class Utterance {
@@ -39,17 +60,15 @@ test('Hoy shows the domain status and sends its advice to speech and registratio
     rate = 1
     constructor(readonly text: string) {}
   }
-  Object.assign(globalThis, {
-    SpeechSynthesisUtterance: Utterance,
-    speechSynthesis: { cancel, speak },
-  })
+  vi.stubGlobal('SpeechSynthesisUtterance', Utterance)
+  vi.stubGlobal('speechSynthesis', { cancel, speak })
   const onRegister = vi.fn()
 
   render(
     <Hoy
-      card={waitCard}
-      mark={mark}
-      statusSentence="Día 15 de época seca. Ahora no es ideal para frijol."
+      card={card}
+      mark={status.mark}
+      statusSentence={status.sentence}
       cropLabels={cropLabels}
       lang="es"
       onRegister={onRegister}
@@ -57,15 +76,19 @@ test('Hoy shows the domain status and sends its advice to speech and registratio
   )
 
   expect(screen.getByRole('region', { name: 'Hoy' })).toBeTruthy()
-  expect(screen.getByRole('img', { name: /Época seca\. Día 15/ })).toBeTruthy()
-  expect(screen.getByText('Día 15 de época seca. Ahora no es ideal para frijol.')).toBeTruthy()
-  expect(screen.getByText('Frijol')).toBeTruthy()
-  expect(screen.getByText('Amarillo')).toBeTruthy()
+  const ring = within(screen.getByRole('img', { name: 'Época seca. Día 15.' }))
+  expect(ring.getByText('Día 15')).toBeTruthy()
+  expect(screen.getByText('Día 15 de época seca. Ventana regular para maíz.')).toBeTruthy()
+  const article = within(screen.getByRole('article'))
+  const waitSentence = 'Esperá unos días. Ahora es época seca. La próxima siembra es la Primera, en mayo.'
+  expect(article.getByText('Maíz')).toBeTruthy()
+  expect(article.getByText('Amarillo')).toBeTruthy()
+  expect(article.getByText(waitSentence)).toBeTruthy()
 
   fireEvent.click(screen.getByRole('button', { name: 'Escuchar consejo en voz alta' }))
   expect(cancel).toHaveBeenCalledOnce()
-  expect(speak).toHaveBeenCalledWith(expect.objectContaining({ text: waitCard.sentence, lang: 'es-SV', rate: 0.9 }))
-  fireEvent.click(screen.getByRole('button', { name: 'Registré siembra' }))
+  expect(speak).toHaveBeenCalledWith(expect.objectContaining({ text: waitSentence, lang: 'es-SV', rate: 0.9 }))
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar siembra' }))
   expect(onRegister).toHaveBeenCalledOnce()
 })
 
@@ -81,7 +104,7 @@ test('Hoy labels a planting card with the shared crop name and selected band', (
   render(
     <Hoy
       card={card}
-      mark={{ ...mark, phase: 'primera', label: 'primera', dayOfPhase: 1 }}
+      mark={{ phase: 'primera', label: 'primera', dayOfPhase: 1, daysUntilEnd: 91 }}
       statusSentence="Day 1 of Primera. Good window for maize."
       cropLabels={{ ...cropLabels, maiz: 'Maize' }}
       lang="en"
@@ -92,6 +115,7 @@ test('Hoy labels a planting card with the shared crop name and selected band', (
   expect(screen.getByText('Maize')).toBeTruthy()
   expect(screen.getByText('Green')).toBeTruthy()
   expect(screen.getByText('Today: plant maize.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Record a planting' })).toBeTruthy()
 })
 
 test('Hoy announces when plot data are not ready', () => {

@@ -54,7 +54,7 @@ export function SiembraAhora({
   const chip = CHIP_COLOR[card.suit]
   const listen = lang === 'es' ? 'Escuchar' : 'Listen'
   const listenLabel = lang === 'es' ? 'Escuchar consejo en voz alta' : 'Listen to this advice aloud'
-  const register = lang === 'es' ? 'Registré siembra' : 'I logged a planting'
+  const register = lang === 'es' ? 'Registrar siembra' : 'Record a planting'
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <article

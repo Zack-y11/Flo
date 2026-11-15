@@ -177,3 +177,9 @@ Use one block per discovery, decision, or introduced change:
 - Message time: 2026-11-15T14:47:45-06:00 (2026-11-15T20:47:45Z).
 - Message: “Pushed `codex/agent-changelog` with semantic commit `docs(changelog): add append-only agent log` and opened ready PR #6 against `docs/contract`.”
 - Evidence: https://github.com/Zack-y11/Flo/pull/6; commit a8e61c49e63df51f1ef389f1e4d460794273427c.
+
+### 2026-11-15T14:49:11-06:00 — root — blocker
+- Scope: PR stack alignment for feature PRs 6–9.
+- Message time: 2026-11-15T14:49:11-06:00 (2026-11-15T20:49:11Z).
+- Message: “PRs 1–5 are now open, but all target `docs/contract` instead of forming the build-plan stack. Feature code commits, pushes, and PRs wait for the correct parent branches.”
+- Evidence: GitHub PRs #1–#5; branch metadata from the GitHub connector.

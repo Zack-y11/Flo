@@ -103,6 +103,7 @@ function isCropId(value: unknown, cropLabels: CropLabels): value is CropId {
 
 export function Logs({ cropLabels, logs, rotation, health, today, lang, onSave }: LogsProps) {
   const [feedback, setFeedback] = useState<Feedback | null>(null)
+  const [plantingDate, setPlantingDate] = useState<string | null>(null)
   const text = copy[lang]
   const locale = lang === 'es' ? 'es-SV' : 'en-US'
   const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 })
@@ -159,7 +160,14 @@ export function Logs({ cropLabels, logs, rotation, health, today, lang, onSave }
         </label>
         <label className="block min-w-0 text-sm font-semibold">
           {text.date}
-          <input type="date" name="plantedOn" className={inputClass} defaultValue={today} required />
+          <input
+            type="date"
+            name="plantedOn"
+            className={inputClass}
+            value={plantingDate ?? today}
+            onChange={(event) => setPlantingDate(event.currentTarget.value)}
+            required
+          />
         </label>
         <button type="submit" className="min-h-12 rounded-full bg-[#94452c] px-5 py-3 font-semibold text-white shadow-sm hover:bg-[#793019] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#793019]">
           {text.save}

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState, type KeyboardEvent } from 'react'
 import {
   cycleStatus,
   nextRotation,
@@ -47,7 +47,33 @@ const unavailableSoil: Soil = { status: 'missing' }
 export default function Page() {
   const [state, setState] = useState<AppState>(defaultState)
   const [tab, setTab] = useState<TabId>('hoy')
-  const today = useMemo(localToday, [])
+  const [today, setToday] = useState(localToday)
+
+  useEffect(() => {
+    let midnightTimer: number | undefined
+
+    function refreshToday() {
+      window.clearTimeout(midnightTimer)
+      const now = new Date()
+      const next = localToday(now)
+      setToday((previous) => (
+        previous.year === next.year && previous.month === next.month && previous.day === next.day ? previous : next
+      ))
+
+      const nextMidnight = new Date(now)
+      nextMidnight.setHours(24, 0, 0, 0)
+      midnightTimer = window.setTimeout(refreshToday, nextMidnight.getTime() - now.getTime())
+    }
+
+    refreshToday()
+    window.addEventListener('focus', refreshToday)
+    document.addEventListener('visibilitychange', refreshToday)
+    return () => {
+      window.clearTimeout(midnightTimer)
+      window.removeEventListener('focus', refreshToday)
+      document.removeEventListener('visibilitychange', refreshToday)
+    }
+  }, [])
 
   useLayoutEffect(() => {
     const stored = readAppState()
@@ -268,8 +294,7 @@ function SeasonRows({ seasons, lang }: { seasons: NonNullable<ReturnType<typeof 
   )
 }
 
-function localToday(): CalendarDay {
-  const now = new Date()
+function localToday(now = new Date()): CalendarDay {
   return { year: now.getFullYear(), month: (now.getMonth() + 1) as CalendarDay['month'], day: now.getDate() }
 }
 

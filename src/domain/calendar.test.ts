@@ -364,6 +364,20 @@ test('onset confidence uses only the years that have an onset', () => {
   assert.equal(partial.confidence, 'media')
 })
 
+test('onset uses dates detected in the 15 most recent complete years', () => {
+  const coveredYears = Array.from({ length: 16 }, (_, index) => 2010 + index)
+  const report = onsetStatus(onsetSeries([
+    { year: 2010, month: 4, day: 1, rainMm: 25, gwetroot: 0.5 },
+    ...coveredYears.slice(1, 10).map((year) => ({ year, month: 5 as const, day: 1, rainMm: 25, gwetroot: 0.5 })),
+  ], coveredYears))
+
+  assert.equal(report.years, 9)
+  assert.equal(report.medianDoy, 121)
+  assert.equal(report.p25Doy, 121)
+  assert.equal(report.p75Doy, 121)
+  assert.equal(report.confidence, 'media')
+})
+
 test('onset ignores a year with a gap in the five-day evaluation window', () => {
   const complete = onsetSeries([
     { year: 2020, month: 4, day: 10, rainMm: 25, gwetroot: 0.5 },

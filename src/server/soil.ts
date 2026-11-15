@@ -58,24 +58,24 @@ export function parseSoil(raw: unknown): SoilReading {
     if (typeof layer !== 'object' || layer === null) {
       return { kind: 'invalid', error: 'soilgrids layer is unreadable' }
     }
-    const name = (layer as { name?: unknown }).name
-    if (typeof name !== 'string' || means.has(name)) continue
+    if (!('name' in layer) || typeof layer.name !== 'string' || means.has(layer.name)) continue
     const mean = surfaceMean(layer)
     if (mean === 'bad') return { kind: 'invalid', error: 'soilgrids mean is unreadable' }
-    means.set(name, mean)
+    means.set(layer.name, mean)
   }
   const profile = { ph: 0, clay: 0, sand: 0, soc: 0, nitrogen: 0 }
-  let missing = 0
+  let nullMeans = 0
   for (const factor of FACTORS) {
     const mean = means.get(factor.wire)
-    if (mean == null) {
-      missing += 1
+    if (mean === undefined) return { kind: 'invalid', error: 'soilgrids profile is incomplete' }
+    if (mean === null) {
+      nullMeans += 1
       continue
     }
     profile[factor.field] = mean / factor.divisor
   }
-  if (missing === FACTORS.length) return { kind: 'empty' }
-  if (missing > 0) return { kind: 'invalid', error: 'soilgrids profile is incomplete' }
+  if (nullMeans === FACTORS.length) return { kind: 'empty' }
+  if (nullMeans > 0) return { kind: 'invalid', error: 'soilgrids profile is incomplete' }
   return { kind: 'profile', ...profile }
 }
 
@@ -154,20 +154,20 @@ function layersFrom(raw: unknown): unknown[] | null {
 }
 
 function surfaceMean(layer: object): number | null | 'bad' {
-  const depths = (layer as { depths?: unknown }).depths
-  if (!Array.isArray(depths)) return null
+  if (!('depths' in layer) || !Array.isArray(layer.depths)) return 'bad'
+  const depths: unknown[] = layer.depths
   for (const depth of depths) {
     if (typeof depth !== 'object' || depth === null) continue
-    if ((depth as { label?: unknown }).label !== SURFACE) continue
-    const values = (depth as { values?: unknown }).values
-    if (values == null) return null
-    if (typeof values !== 'object') return 'bad'
-    const mean = (values as { mean?: unknown }).mean
-    if (mean == null) return null
+    if (!('label' in depth) || depth.label !== SURFACE) continue
+    if (!('values' in depth)) return 'bad'
+    const { values } = depth
+    if (typeof values !== 'object' || values === null || !('mean' in values)) return 'bad'
+    const { mean } = values
+    if (mean === null) return null
     if (typeof mean !== 'number' || !Number.isFinite(mean)) return 'bad'
     return mean
   }
-  return null
+  return 'bad'
 }
 
 function shift(lat: number, lon: number, northKm: number, eastKm: number): { lat: number; lon: number } {

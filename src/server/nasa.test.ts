@@ -257,6 +257,51 @@ serial('an incomplete soil profile does not fall back', async () => {
   assert.equal(calls, 1)
 })
 
+serial('malformed soil surface data returns 502 without falling back or caching', async () => {
+  const origin = { lat: 13.53, lon: -89.23 }
+  const otherLayers = ['clay', 'sand', 'soc', 'nitrogen'].map((name) => ({
+    name,
+    depths: [{ label: '0-5cm', values: { mean: null } }],
+  }))
+  const cases = [
+    { description: 'missing layer', layers: [] },
+    { description: 'missing depths', layers: [{ name: 'phh2o' }] },
+    { description: 'malformed depths', layers: [{ name: 'phh2o', depths: {} }] },
+    {
+      description: 'missing 0-5cm depth',
+      layers: [{ name: 'phh2o', depths: [{ label: '5-15cm', values: { mean: null } }] }],
+    },
+    {
+      description: 'missing 0-5cm values',
+      layers: [{ name: 'phh2o', depths: [{ label: '0-5cm' }] }],
+    },
+    {
+      description: 'null 0-5cm values',
+      layers: [{ name: 'phh2o', depths: [{ label: '0-5cm', values: null }] }],
+    },
+    {
+      description: 'missing 0-5cm mean',
+      layers: [{ name: 'phh2o', depths: [{ label: '0-5cm', values: {} }] }],
+    },
+  ]
+
+  for (const { description, layers } of cases) {
+    let calls = 0
+    const result = await loadSoil(origin.lat, origin.lon, async (lat, lon) => {
+      calls += 1
+      if (isPin(lat, lon)) return measuredSoil()
+      return { properties: { layers: [...layers, ...otherLayers] } }
+    })
+    assert.ok(!result.ok, description)
+    assert.equal(result.status, 502, description)
+    assert.equal(calls, 1, description)
+  }
+
+  const retry = await loadSoil(origin.lat, origin.lon, async () => measuredSoil())
+  assert.ok(retry.ok)
+  assert.equal(retry.body.origin, 'pin')
+})
+
 serial('two soil calls inside 7 days use one upstream request', async () => {
   const started = 1_700_000_000_000
   let calls = 0

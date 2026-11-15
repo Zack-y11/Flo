@@ -171,3 +171,9 @@ Use one block per discovery, decision, or introduced change:
 - Message time: 2026-11-15T14:43:21-06:00 (2026-11-15T20:43:21Z).
 - Message: “Registered the smart-commit command path and user-specific commit rules with all four feature workers. Commits and pushes wait until each branch has the correct parent stack.”
 - Evidence: Follow-up confirmations from `implement_pr_logs_ui`, `implement_pr_map`, `implement_pr_outlook`, and `implement_pr_datos`.
+
+### 2026-11-15T14:47:45-06:00 — root — change
+- Scope: Shared agent changelog publication.
+- Message time: 2026-11-15T14:47:45-06:00 (2026-11-15T20:47:45Z).
+- Message: “Pushed `codex/agent-changelog` with semantic commit `docs(changelog): add append-only agent log` and opened ready PR #6 against `docs/contract`.”
+- Evidence: https://github.com/Zack-y11/Flo/pull/6; commit a8e61c49e63df51f1ef389f1e4d460794273427c.

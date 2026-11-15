@@ -34,7 +34,6 @@ function measured(ph: number, socGkg = 0): Soil {
 
 function climate(month: MonthNo, t2mC: number, prectotcorrMmDay: number, extra: Partial<MonthClimate> = {}): MonthClimate {
   return {
-    month,
     t2mC,
     prectotcorrMmDay,
     solarMj: 0,

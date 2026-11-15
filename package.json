@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "test": "npm run test:domain && npm run test:server && npm run test:ui",
-    "test:domain": "node --test src/domain/calendar.test.ts",
+    "test:domain": "node --test src/domain/calendar.test.ts src/domain/field.test.ts",
     "test:server": "node --import tsx --test --test-concurrency=1 src/server/nasa.test.ts src/state/store.test.ts",
     "test:ui": "vitest run",
     "typecheck": "tsc --noEmit"

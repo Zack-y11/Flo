@@ -200,6 +200,7 @@ serial('all-null soil retries a 3 to 5 km ring and then La Libertad', async () =
   assert.equal(result.ok, true)
   if (!result.ok) return
   assert.equal(result.body.fallback, true)
+  assert.equal(result.body.origin, 'regional')
   assert.equal(result.body.ph, 59 / 10)
   assert.equal(result.body.soc, 486 / 10)
   assert.equal(calls[0].lat, origin.lat)
@@ -226,6 +227,7 @@ serial('a nearby soil hit sets fallback and does not call La Libertad', async ()
   assert.equal(result.ok, true)
   if (!result.ok) return
   assert.equal(result.body.fallback, true)
+  assert.equal(result.body.origin, 'offset')
   assert.equal(calls.length, 2)
   assert.equal(isPin(calls[1].lat, calls[1].lon), false)
   assert.ok(kmBetween(origin, calls[1]) >= 3 && kmBetween(origin, calls[1]) <= 5)
@@ -335,6 +337,7 @@ serial('soil route divides, caches, and stays inside the call budgets', async ()
         sand: number
         soc: number
         nitrogen: number
+        origin: 'pin' | 'offset' | 'regional'
         fallback: boolean
       }
       assert.equal(profile.ph, 59 / 10)
@@ -342,6 +345,7 @@ serial('soil route divides, caches, and stays inside the call budgets', async ()
       assert.equal(profile.sand, 303 / 10)
       assert.equal(profile.soc, 486 / 10)
       assert.equal(profile.nitrogen, 337 / 100)
+      assert.equal(profile.origin, 'pin')
       assert.equal(profile.fallback, false)
       assert.equal(JSON.stringify(profile).includes('T2M'), false)
       assert.equal(JSON.stringify(profile).includes('d_factor'), false)
@@ -425,8 +429,9 @@ serial('the soil route walks offsets and then the La Libertad pin', async () => 
         new Request(`http://127.0.0.1/api/soil?lat=${origin.lat}&lon=${origin.lon}`),
       )
       assert.equal(response.status, 200)
-      const body = (await response.json()) as { fallback: boolean; soc: number }
+      const body = (await response.json()) as { fallback: boolean; origin: 'pin' | 'offset' | 'regional'; soc: number }
       assert.equal(body.fallback, true)
+      assert.equal(body.origin, 'regional')
       assert.equal(body.soc, 486 / 10)
     },
   )

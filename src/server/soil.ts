@@ -4,6 +4,7 @@ export type SoilProfile = {
   sand: number
   soc: number
   nitrogen: number
+  origin: 'pin' | 'offset' | 'regional'
   fallback: boolean
 }
 
@@ -91,21 +92,21 @@ export async function loadSoil(
   const first = await readPoint(fetchPoint, lat, lon)
   if (first.kind === 'unavailable') return { ok: false, status: 502, error: 'soil unavailable' }
   if (first.kind === 'invalid') return { ok: false, status: 502, error: first.error }
-  if (first.kind === 'profile') return remember(key, measured(first, false), now)
+  if (first.kind === 'profile') return remember(key, measured(first, 'pin'), now)
 
   for (const step of RING_KM) {
     const shifted = shift(lat, lon, step.northKm, step.eastKm)
     const next = await readPoint(fetchPoint, shifted.lat, shifted.lon)
     if (next.kind === 'unavailable') return { ok: false, status: 502, error: 'soil unavailable' }
     if (next.kind === 'invalid') return { ok: false, status: 502, error: next.error }
-    if (next.kind === 'profile') return remember(key, measured(next, true), now)
+    if (next.kind === 'profile') return remember(key, measured(next, 'offset'), now)
   }
 
   if (!samePoint(lat, lon, LA_LIBERTAD.lat, LA_LIBERTAD.lon)) {
     const regional = await readPoint(fetchPoint, LA_LIBERTAD.lat, LA_LIBERTAD.lon)
     if (regional.kind === 'unavailable') return { ok: false, status: 502, error: 'soil unavailable' }
     if (regional.kind === 'invalid') return { ok: false, status: 502, error: regional.error }
-    if (regional.kind === 'profile') return remember(key, measured(regional, true), now)
+    if (regional.kind === 'profile') return remember(key, measured(regional, 'regional'), now)
   }
 
   return { ok: false, status: 502, error: 'soil unavailable' }
@@ -113,7 +114,7 @@ export async function loadSoil(
 
 function measured(
   reading: Extract<SoilReading, { kind: 'profile' }>,
-  fallback: boolean,
+  origin: SoilProfile['origin'],
 ): SoilProfile {
   return {
     ph: reading.ph,
@@ -121,7 +122,8 @@ function measured(
     sand: reading.sand,
     soc: reading.soc,
     nitrogen: reading.nitrogen,
-    fallback,
+    origin,
+    fallback: origin !== 'pin',
   }
 }
 

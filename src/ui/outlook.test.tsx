@@ -8,8 +8,11 @@ test('shows the onset window, confidence, dry-spell level, and disclaimer', () =
   render(
     <Outlook
       lang="es"
-      onset={{ p25Doy: 101, p75Doy: 115, medianDoy: 108, confidence: 'alta' }}
-      drySpell={{ level: 'medio' }}
+      data={{
+        kind: 'ready',
+        onset: { p25Doy: 101, p75Doy: 115, medianDoy: 108, confidence: 'alta' },
+        drySpell: { level: 'medio' },
+      }}
     />,
   )
 
@@ -25,8 +28,11 @@ test('shows explicit missing states for short or unavailable series', () => {
   render(
     <Outlook
       lang="en"
-      onset={{ p25Doy: null, p75Doy: null, medianDoy: null, confidence: 'baja' }}
-      drySpell={null}
+      data={{
+        kind: 'ready',
+        onset: { p25Doy: null, p75Doy: null, medianDoy: null, confidence: 'baja' },
+        drySpell: null,
+      }}
     />,
   )
 
@@ -42,8 +48,11 @@ test.each([
   render(
     <Outlook
       lang="es"
-      onset={{ p25Doy: 101, p75Doy: 115, medianDoy: 108, confidence: 'alta' }}
-      drySpell={{ level }}
+      data={{
+        kind: 'ready',
+        onset: { p25Doy: 101, p75Doy: 115, medianDoy: 108, confidence: 'alta' },
+        drySpell: { level },
+      }}
     />,
   )
 
@@ -55,8 +64,11 @@ test('translates both outlooks in English', () => {
   render(
     <Outlook
       lang="en"
-      onset={{ p25Doy: 101, p75Doy: 115, medianDoy: 108, confidence: 'media' }}
-      drySpell={{ level: 'alto' }}
+      data={{
+        kind: 'ready',
+        onset: { p25Doy: 101, p75Doy: 115, medianDoy: 108, confidence: 'media' },
+        drySpell: { level: 'alto' },
+      }}
     />,
   )
 
@@ -65,4 +77,12 @@ test('translates both outlooks in English', () => {
   expect(screen.getByText(/Medium confidence/)).toBeTruthy()
   expect(screen.getByText('High')).toBeTruthy()
   expect(screen.getByText(/This is not a forecast/)).toBeTruthy()
+})
+
+test('shows loading instead of missing-data messages before the request finishes', () => {
+  render(<Outlook lang="es" data={{ kind: 'loading' }} />)
+
+  expect(screen.getByRole('status').textContent).toContain('Cargando')
+  expect(screen.queryByText(/No hay años suficientes/)).toBeNull()
+  expect(screen.queryByText(/No hay datos recientes/)).toBeNull()
 })

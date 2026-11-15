@@ -278,11 +278,23 @@ test('cafe joins the day card only when it is the only log', () => {
   if (cafe.kind === 'plant') assert.equal(cafe.irrigation, false)
 })
 
-function onsetSeries(points: { year: number; month: MonthNo; day: number; rainMm: number; gwetroot: number }[]): DailySeries {
-  const days = points.map((point) =>
-    observe({ year: point.year, month: point.month, day: point.day }, point.rainMm, point.gwetroot),
-  )
-  const latest = Math.max(...points.map((point) => point.year))
+function onsetSeries(
+  points: { year: number; month: MonthNo; day: number; rainMm: number; gwetroot: number }[],
+  coveredYears: number[] = [...new Set(points.map((point) => point.year))],
+): DailySeries {
+  const days: DailyObservation[] = []
+  for (const year of coveredYears) {
+    const start = Date.UTC(year, 2, 28)
+    const end = Date.UTC(year, 5, 30)
+    for (let time = start; time <= end; time += 86_400_000) {
+      const date = new Date(time)
+      const month = (date.getUTCMonth() + 1) as MonthNo
+      const day = date.getUTCDate()
+      const point = points.find((candidate) => candidate.year === year && candidate.month === month && candidate.day === day)
+      days.push(observe({ year, month, day }, point?.rainMm ?? 0, point?.gwetroot ?? 0))
+    }
+  }
+  const latest = Math.max(...coveredYears)
   return { days, validThrough: { year: latest, month: 12, day: 31 } }
 }
 
@@ -346,10 +358,40 @@ test('onset confidence uses only the years that have an onset', () => {
         gwetroot: 0.5,
       })),
       ...[2019, 2021, 2023].map((year) => ({ year, month: 1 as const, day: 10, rainMm: 0, gwetroot: 0 })),
-    ]),
+    ], [2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021, 2023]),
   )
   assert.equal(partial.years, 9)
   assert.equal(partial.confidence, 'media')
+})
+
+test('onset ignores a year with a gap in the five-day evaluation window', () => {
+  const complete = onsetSeries([
+    { year: 2020, month: 4, day: 10, rainMm: 25, gwetroot: 0.5 },
+    { year: 2021, month: 4, day: 6, rainMm: 10, gwetroot: 0 },
+    { year: 2021, month: 4, day: 7, rainMm: 10, gwetroot: 0 },
+    { year: 2021, month: 4, day: 9, rainMm: 5, gwetroot: 0 },
+    { year: 2021, month: 4, day: 10, rainMm: 0, gwetroot: 0.5 },
+  ], [2020, 2021])
+  const missingDay = {
+    ...complete,
+    days: complete.days.filter(({ date }) => !(date.year === 2021 && date.month === 4 && date.day === 8)),
+  }
+
+  const report = onsetStatus(missingDay)
+  assert.equal(report.years, 1)
+  assert.equal(report.medianDoy, 100)
+})
+
+test('onset dates align across leap and common years', () => {
+  const report = onsetStatus(onsetSeries([
+    { year: 2020, month: 5, day: 1, rainMm: 25, gwetroot: 0.5 },
+    { year: 2021, month: 5, day: 1, rainMm: 25, gwetroot: 0.5 },
+  ], [2020, 2021]))
+
+  assert.equal(report.years, 2)
+  assert.equal(report.medianDoy, 121)
+  assert.equal(report.p25Doy, 121)
+  assert.equal(report.p75Doy, 121)
 })
 
 function dryStatus(rains: number[]) {

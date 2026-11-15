@@ -474,6 +474,20 @@ function yearComplete(year: number, through: CalendarDay): boolean {
   return through.month > 6 || (through.month === 6 && through.day >= 30)
 }
 
+function hasCompleteOnsetWindow(year: number, map: Map<string, DailyObservation>): boolean {
+  const rules = SCORE_RULES.onset
+  let cursor = addDays(
+    { year, month: rules.windowStart.month, day: rules.windowStart.day },
+    -(rules.trailingDays - 1),
+  )
+  const end: CalendarDay = { year, month: rules.windowEnd.month, day: rules.windowEnd.day }
+  while (compareDay(cursor, end) <= 0) {
+    if (!map.has(dateKey(cursor))) return false
+    cursor = addDays(cursor, 1)
+  }
+  return true
+}
+
 function percentile(sorted: readonly number[], p: number): number {
   if (sorted.length === 1) return sorted[0] ?? 0
   const pos = (sorted.length - 1) * p
@@ -494,17 +508,26 @@ function confidenceOf(years: number, iqr: number | null): Confidence {
 
 function onsetDoy(year: number, map: Map<string, DailyObservation>): number | null {
   const rules = SCORE_RULES.onset
+  if (!hasCompleteOnsetWindow(year, map)) return null
   let cursor: CalendarDay = { year, month: rules.windowStart.month, day: rules.windowStart.day }
   const end: CalendarDay = { year, month: rules.windowEnd.month, day: rules.windowEnd.day }
   while (compareDay(cursor, end) <= 0) {
     let sum = 0
+    let completeWindow = true
     for (let offset = 0; offset < rules.trailingDays; offset += 1) {
       const earlier = addDays(cursor, -offset)
-      sum += map.get(dateKey(earlier))?.rainMm ?? 0
+      const observation = map.get(dateKey(earlier))
+      if (!observation) {
+        completeWindow = false
+        break
+      }
+      sum += observation.rainMm
     }
     const observed = map.get(dateKey(cursor))
-    if (sum >= rules.rainMm && observed !== undefined && observed.gwetroot >= rules.gwetroot) {
-      return dayOfYear(cursor)
+    if (completeWindow && sum >= rules.rainMm && observed && observed.gwetroot >= rules.gwetroot) {
+      const doy = dayOfYear(cursor)
+      const leapYear = new Date(Date.UTC(year, 1, 29)).getUTCMonth() === 1
+      return leapYear && cursor.month > 2 ? doy - 1 : doy
     }
     cursor = addDays(cursor, 1)
   }
@@ -512,11 +535,11 @@ function onsetDoy(year: number, map: Map<string, DailyObservation>): number | nu
 }
 
 function onsetReport(series: DailySeries | null, lang: Lang): OnsetReport {
+  const map = observationMap(series?.days ?? [])
   const yearsInSeries = [...new Set((series?.days ?? []).map((day) => day.date.year))]
-    .filter((year) => series !== null && yearComplete(year, series.validThrough))
+    .filter((year) => series !== null && yearComplete(year, series.validThrough) && hasCompleteOnsetWindow(year, map))
     .sort((a, b) => a - b)
     .slice(-SCORE_RULES.onset.sampleYears)
-  const map = observationMap(series?.days ?? [])
   const onsets: number[] = []
   for (const year of yearsInSeries) {
     const doy = onsetDoy(year, map)

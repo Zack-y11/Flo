@@ -180,10 +180,9 @@ export default function Page() {
             )}
             <Outlook
               lang={state.lang}
-              onset={status?.onset.p25Doy !== null && status?.onset.p25Doy !== undefined
-                ? status.onset
-                : null}
-              drySpell={status?.drySpell ?? null}
+              data={fieldSession.initialLoading
+                ? { kind: 'loading' }
+                : { kind: 'ready', onset: status?.onset ?? null, drySpell: status?.drySpell ?? null }}
             />
             <div id="plantings">
               <Logs

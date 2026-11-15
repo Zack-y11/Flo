@@ -30,6 +30,23 @@ test('maps API values into domain data and rejects incomplete payloads', () => {
   expect(parseSoil({ ph: 6.1, soc: 30, clay: 20, sand: 40, nitrogen: 1.2, origin: 'pin', fallback: true })).toBeNull()
 })
 
+test('requests fifteen years of daily observations for onset calculations', async () => {
+  const fetcher = vi.fn(async (input: RequestInfo | URL) => responseFor(String(input)))
+  vi.stubGlobal('fetch', fetcher)
+  renderHook(() => useFieldSession({
+    field: initialField,
+    today,
+    getCommittedField: () => initialField,
+    onCommit: () => true,
+  }))
+
+  await settleInitialLoad()
+
+  const dailyRequest = fetcher.mock.calls.map(([input]) => String(input)).find((url) => url.includes('/daily'))
+  expect(dailyRequest).toContain('start=20111115')
+  expect(dailyRequest).toContain('end=20261115')
+})
+
 test('debounces two map picks into one request bundle and commits only the latest point', async () => {
   vi.useFakeTimers()
   const committedRef = { current: initialField }

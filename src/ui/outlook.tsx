@@ -5,8 +5,7 @@ type DrySpell = Pick<DomainDrySpell, 'level'>
 
 type OutlookProps = {
   lang: Lang
-  onset: Onset | null
-  drySpell: DrySpell | null
+  data: { kind: 'loading' } | { kind: 'ready'; onset: Onset | null; drySpell: DrySpell | null }
 }
 
 const copy = {
@@ -17,6 +16,7 @@ const copy = {
     median: 'Fecha mediana',
     confidence: { alta: 'Confianza alta', media: 'Confianza media', baja: 'Confianza baja' },
     onsetMissing: 'No hay años suficientes para estimar cuándo suelen empezar las lluvias.',
+    loading: 'Cargando datos de lluvia…',
     dryTitle: 'Riesgo de sequía corta',
     dryLevel: { bajo: 'Bajo', medio: 'Medio', alto: 'Alto' },
     dryDetails: 'Indicador para los próximos 7 a 14 días, basado en la lluvia reciente de NASA POWER. No es un pronóstico.',
@@ -29,6 +29,7 @@ const copy = {
     median: 'Median date',
     confidence: { alta: 'High confidence', media: 'Medium confidence', baja: 'Low confidence' },
     onsetMissing: 'There are too few years of data to estimate when the rains usually begin.',
+    loading: 'Loading rainfall data…',
     dryTitle: 'Short dry spell risk',
     dryLevel: { bajo: 'Low', medio: 'Medium', alto: 'High' },
     dryDetails: 'A 7 to 14 day risk indicator based on recent NASA POWER rainfall. This is not a forecast.',
@@ -41,6 +42,7 @@ const copy = {
   median: string
   confidence: Record<Onset['confidence'], string>
   onsetMissing: string
+  loading: string
   dryTitle: string
   dryLevel: Record<DrySpell['level'], string>
   dryDetails: string
@@ -63,11 +65,21 @@ function dateForDoy(doy: number) {
   return new Date(Date.UTC(2021, 0, doy))
 }
 
-export function Outlook({ lang, onset, drySpell }: OutlookProps) {
+export function Outlook({ lang, data }: OutlookProps) {
   const text = copy[lang]
   const dates = dateFormat[lang]
   const card = 'grid min-w-0 gap-1.5 rounded-2xl bg-[#e8f3ec] px-4 py-3 text-ink'
 
+  if (data.kind === 'loading') {
+    return (
+      <section lang={lang} aria-label={text.heading} className="mx-auto grid w-full max-w-[40rem] gap-2.5">
+        <h2 className="px-1 text-sm font-semibold">{text.heading}</h2>
+        <p role="status" className="rounded-2xl bg-[#e8f3ec] px-4 py-3 text-sm leading-relaxed">{text.loading}</p>
+      </section>
+    )
+  }
+
+  const { onset, drySpell } = data
   return (
     <section lang={lang} aria-label={text.heading} className="mx-auto grid w-full max-w-[40rem] gap-2.5">
       <h2 className="px-1 text-sm font-semibold">{text.heading}</h2>

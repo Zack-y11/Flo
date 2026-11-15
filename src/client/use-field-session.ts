@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { isFieldPoint, type FieldPoint } from '@/domain/field'
-import type {
-  CalendarDay,
-  Climatology,
-  DailySeries,
-  MonthClimate,
-  MonthNo,
-  Soil,
+import {
+  SCORE_RULES,
+  type CalendarDay,
+  type Climatology,
+  type DailySeries,
+  type MonthClimate,
+  type MonthNo,
+  type Soil,
 } from '@/domain/calendar'
 import type { Field } from '@/state/store'
 import type { MapPointAttempt } from '@/ui/map-sheet'
@@ -44,7 +45,7 @@ type Result = {
 
 type LoadKeyInput = { lat: number; lon: number; today: CalendarDay }
 
-const DAILY_WINDOW_YEARS = 2
+const DAILY_WINDOW_YEARS = SCORE_RULES.onset.sampleYears
 const DEFAULT_DEBOUNCE_MS = 400
 const MONTHS: readonly MonthNo[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 

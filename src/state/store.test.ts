@@ -123,6 +123,15 @@ test('a repeated sowing on the same day keeps the first log', () => {
   assert.equal(logs[1]?.plantedOn, '2026-08-01')
 })
 
+test('a saved planting survives a simulated reload', () => {
+  const storage = memoryStorage()
+  const first = createAppStore(storage)
+  first.dispatch({ type: 'saveLog', log: maize })
+
+  const restored = createAppStore(storage).read()
+  assert.deepEqual(restored.logs, [maize])
+})
+
 test('a stored score, altitude, or rejected language does not come back', () => {
   const storage = memoryStorage()
   storage.setItem(

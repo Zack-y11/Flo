@@ -1,0 +1,8 @@
+{
+  "name": "flo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test src/domain/calendar.test.ts"
+  }
+}

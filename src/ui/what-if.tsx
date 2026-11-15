@@ -107,4 +107,3 @@ function choiceStyle(checked: boolean): CSSProperties {
     color: checked ? "#ffffff" : "#1c1915",
   }
 }
-

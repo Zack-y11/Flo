@@ -68,7 +68,7 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
 Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not installed, so the driver is named here instead of a missing control skill.
 
 - [ ] `git fetch origin <head-branch> && git checkout <head SHA>`. Until origin exists, check out the PR head SHA locally and record that.
-- [ ] For pr-domain, run `npm test` and screenshot the terminal. For pr-nasa, start `npm run dev`, wait until it prints the ready line, and drive the routes with curl. For every later PR, start `npm run dev`, wait until it prints the ready line, and drive the page in a browser at the viewport the lane names.
+- [ ] For pr-domain, run `pnpm test` and screenshot the terminal. For pr-nasa, start `pnpm dev`, wait until it prints the ready line, and drive the routes with curl. For every later PR, start `pnpm dev`, wait until it prints the ready line, and drive the page in a browser at the viewport the lane names.
 - [ ] Deliver input only through that driver. Read-only diagnostics are the terminal log, the browser network log, and `curl -D -`.
 - [ ] Save every screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.
 
@@ -78,7 +78,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 **Files.**
 
-- [ ] Create `package.json` with `npm test`.
+- [ ] Create `package.json` with `pnpm test`.
 - [ ] Create `tsconfig.json`.
 - [ ] Create `src/domain/calendar.ts`.
 - [ ] Create `src/domain/calendar.test.ts`.
@@ -91,15 +91,15 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 **You see.**
 
-- [ ] `npm test` prints the maize oracle, suit about 72.13, band green, for a 31-day month with 100 mm, T 24, and pH 6.5.
+- [ ] `pnpm test` prints the maize oracle, suit about 72.13, band green, for a 31-day month with 100 mm, T 24, and pH 6.5.
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] `src/domain/calendar.test.ts` gains the maize oracle, café's annual divisor, pH omission, drought lift, 15 Nov 2026 as seca day 15, onset confidence, dry-spell levels, rotation, and the soil score. Run `npm test`.
+- [ ] `src/domain/calendar.test.ts` gains the maize oracle, café's annual divisor, pH omission, drought lift, 15 Nov 2026 as seca day 15, onset confidence, dry-spell levels, rotation, and the soil score. Run `pnpm test`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `claude-haiku-5-5-thinking-xhigh` at the PR head, per the boot recipe.
 
-- [ ] Lane 1. Regression lane against trunk. Run `npm test` at trunk and at head. Trunk has no app. Record that and gate the maize oracle at head. Save `pr-domain-regression.png`. Pass when head prints suit about 72.13 and band green, and the lane record says trunk had no domain module.
+- [ ] Lane 1. Regression lane against trunk. Run `pnpm test` at trunk and at head. Trunk has no app. Record that and gate the maize oracle at head. Save `pr-domain-regression.png`. Pass when head prints suit about 72.13 and band green, and the lane record says trunk had no domain module.
 - [ ] Lane 2. Temperature edges for maize. Save `pr-domain-temp.png`. Pass when T 12 and T 32 score 0, T 30 scores 40, and T 18 scores about 66.67.
 - [ ] Lane 3. Rain unit trap. Save `pr-domain-rain.png`. Pass when the 100 mm month scores about 30.33, which is the millimetre-per-month comparison, and a raw millimetre-per-day comparison is not what the test asserts.
 - [ ] Lane 4. Café divisor. Save `pr-domain-cafe.png`. Pass when the café month target is 1600 divided by 12 and the test does not multiply by cycle days.
@@ -113,7 +113,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 **Verify, perf.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
 - [ ] Metric. Time to score 5 crops across 12 months. Trunk has no score function, so the trunk metric is absent. The user-visible end state this diff adds is the in-memory recompute the slider will wait on.
-- [ ] Probe. Run the domain perf probe at trunk and at head, interleaved. Trunk fails because `npm test` is absent. Head runs the same probe.
+- [ ] Probe. Run the domain perf probe at trunk and at head, interleaved. Trunk fails because `pnpm test` is absent. Head runs the same probe.
 - [ ] Baseline. Record the trunk absence first.
 - [ ] Rule. Head must finish those 60 scores in under 16 ms. The 16 ms figure is one display frame, not a measured baseline. A head time of 16 ms or more fails.
 
@@ -151,7 +151,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] `src/server/nasa.test.ts` gains parse, trim, divide, fallback, and cache cases. Run `npm test`.
+- [ ] `src/server/nasa.test.ts` gains parse, trim, divide, fallback, and cache cases. Run `pnpm test`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `claude-haiku-5-5-thinking-xhigh` at the PR head, per the boot recipe.
 
@@ -206,7 +206,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] `src/state/store.test.ts` gains a round trip for field, lang, empty logs, and default what-if. Run `npm test`.
+- [ ] `src/state/store.test.ts` gains a round trip for field, lang, empty logs, and default what-if. Run `pnpm test`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `claude-haiku-5-5-thinking-xhigh` at the PR head, per the boot recipe.
 
@@ -263,7 +263,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] A render test feeds 15 Nov 2026 and the maize oracle month. Run `npm test`.
+- [ ] A render test feeds 15 Nov 2026 and the maize oracle month. Run `pnpm test`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `claude-haiku-5-5-thinking-xhigh` at the PR head, per the boot recipe.
 
@@ -318,7 +318,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] A test moves `rainFactor` from 1 to 0.8 on a fixture and expects a different cell band for at least one crop-month. Run `npm test`.
+- [ ] A test moves `rainFactor` from 1 to 0.8 on a fixture and expects a different cell band for at least one crop-month. Run `pnpm test`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `claude-haiku-5-5-thinking-xhigh` at the PR head, per the boot recipe.
 
@@ -372,7 +372,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] `src/domain/calendar.test.ts` already covers rotation. Add a store test that a saved log survives a simulated reload. Run `npm test`.
+- [ ] `src/domain/calendar.test.ts` already covers rotation. Add a store test that a saved log survives a simulated reload. Run `pnpm test`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `claude-haiku-5-5-thinking-xhigh` at the PR head, per the boot recipe.
 
@@ -426,7 +426,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] A test debounces two clicks 100 ms apart into one fetch. Run `npm test`.
+- [ ] A test debounces two clicks 100 ms apart into one fetch. Run `pnpm test`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `claude-haiku-5-5-thinking-xhigh` at the PR head, per the boot recipe.
 
@@ -480,7 +480,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] A render test supplies a fixed onset result and a fixed dry-spell level. Run `npm test`.
+- [ ] A render test supplies a fixed onset result and a fixed dry-spell level. Run `pnpm test`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `claude-haiku-5-5-thinking-xhigh` at the PR head, per the boot recipe.
 
@@ -534,7 +534,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] A render test expects the POWER name, the SoilGrids name, and the compiled-trait disclaimer. Run `npm test`.
+- [ ] A render test expects the POWER name, the SoilGrids name, and the compiled-trait disclaimer. Run `pnpm test`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `claude-haiku-5-5-thinking-xhigh` at the PR head, per the boot recipe.
 
@@ -576,7 +576,7 @@ Each live lane runs on its own cloud VM at the PR head. `cursor-team-kit` is not
 
 ## Appendix A. Prototype evidence
 
-The module-shape prototypes are the two architect sketches under the agent store `arena/candidate-live` and `arena/candidate-lattice`. This tree has no git commits, so there is no SHA to cite. `docs/architecture.md` names the base shape and the grafts. `docs/discovery.md` holds the formula oracles. Those oracles stay unproven on a running app until pr-domain's `npm test` prints them. `docs/interrogate.md` lists findings that were reproduced, or says that none were.
+The module-shape prototypes are the two architect sketches under the agent store `arena/candidate-live` and `arena/candidate-lattice`. This tree has no git commits, so there is no SHA to cite. `docs/architecture.md` names the base shape and the grafts. `docs/discovery.md` holds the formula oracles. Those oracles stay unproven on a running app until pr-domain's `pnpm test` prints them. `docs/interrogate.md` lists findings that were reproduced, or says that none were.
 
 Questions that stay unproven until a later go. Live NASA latency at the real La Libertad pin. The visual calm of the column. Whether a teammate replaces the compiled trait numbers.
 
@@ -598,7 +598,7 @@ The noon freeze on Sun Nov 15, 2026 has passed. The submit deadline is 11:59 PM 
 
 The farmer UI is the Stitch export under `.stitch`. Hoy, Este año, and Mi parcela are the tabs. The calendario, inicio ciclo, siembra, and mapa screens are the spec's grid, onset, log, and pin. Apante and verano on the four-row year screen are labels on `seca`, not new score ids. The two altitudes on the map screens are not a data source. pr-shell through pr-datos watch those screens. A new layout is a miss.
 
-`cursor-team-kit` control skills are not installed. UI lanes drive a browser by hand as the boot recipe says. API lanes use curl. Domain lanes screenshot `npm test`. That gap sits on every PR.
+`cursor-team-kit` control skills are not installed. UI lanes drive a browser by hand as the boot recipe says. API lanes use curl. Domain lanes screenshot `pnpm test`. That gap sits on every PR.
 
 `/deslop` and `/no-comments` may be missing with the same plugin. Owners record the gap instead of pretending the pass ran.
 

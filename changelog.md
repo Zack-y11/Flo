@@ -210,3 +210,11 @@ Use one block per discovery, decision, or introduced change:
 - Message time: 2026-11-15T17:00:12-06:00 (2026-11-15T23:00:12Z).
 - Message: “Opened ready PR #7 with the full nine-slice stack against `main`.”
 - Evidence: https://github.com/Zack-y11/Flo/pull/7; branch `codex/flo-main-stack`; prior head `1629e64`.
+
+### 2026-11-15T17:36:32-06:00 — root — change
+- Scope: Package manager on `main`.
+- Message time (first recorded): 2026-11-15T17:36:32-06:00 (2026-11-15T23:36:32Z).
+- Message: “can ypu check main, and ensure where using pnpm instance of npm please”
+- Change: Pinned `pnpm@10.26.1`, replaced the npm lockfile with `pnpm-lock.yaml`, and converted active scripts and build-plan commands. Earlier changelog entries remain unchanged as historical evidence.
+- Verification: Frozen pnpm install, 77 tests, typecheck, and production build passed; independent review confirmed all 241 resolved packages match version and integrity.
+- Evidence: branch `codex/pnpm-migration` based on `origin/main` at `43576b8`; pnpm infrastructure review.

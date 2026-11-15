@@ -95,6 +95,46 @@ describe('crop calendar', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it('moves focus and selection with arrow keys within each what-if group', () => {
+    const climatology = climate()
+    const seen: WhatIf[] = []
+    render(<Harness climatology={climatology} soil={profile()} onWhatIf={(next) => seen.push(next)} />)
+
+    const baselineTemperature = screen.getByRole('radio', { name: '+0 °C' })
+    const warmest = screen.getByRole('radio', { name: '+2 °C' })
+    const baselineRain = screen.getByRole('radio', { name: '0%' })
+    const driest = screen.getByRole('radio', { name: '−20%' })
+    const initialBands = bands()
+
+    baselineTemperature.focus()
+    fireEvent.keyDown(baselineTemperature, { key: 'ArrowLeft' })
+    expect(document.activeElement).toBe(warmest)
+    expect(screen.getByRole('radio', { name: '+2 °C', checked: true })).toBe(warmest)
+    expect(bands()).not.toEqual(initialBands)
+    expect(screen.getAllByRole('radio').filter((radio) => radio.tabIndex === 0)).toEqual([warmest, baselineRain])
+
+    fireEvent.keyDown(warmest, { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(baselineTemperature)
+    expect(bands()).toEqual(initialBands)
+
+    fireEvent.keyDown(baselineTemperature, { key: 'ArrowRight' })
+    const warmer = screen.getByRole('radio', { name: '+1 °C', checked: true })
+    expect(document.activeElement).toBe(warmer)
+
+    baselineRain.focus()
+    fireEvent.keyDown(baselineRain, { key: 'ArrowUp' })
+    expect(document.activeElement).toBe(driest)
+    expect(screen.getByRole('radio', { name: '−20%', checked: true })).toBe(driest)
+    expect(screen.getAllByRole('radio').filter((radio) => radio.tabIndex === 0)).toEqual([warmer, driest])
+    expect(seen).toEqual([
+      { dT: 2, rainFactor: 1 },
+      { dT: 0, rainFactor: 1 },
+      { dT: 1, rainFactor: 1 },
+      { dT: 1, rainFactor: 0.8 },
+    ])
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('translates the controls and crop labels in English', () => {
     const englishLabels = { maiz: 'Maize', frijol: 'Beans', sorgo: 'Sorghum', canavalia: 'Canavalia', cafe: 'Coffee' }
     render(

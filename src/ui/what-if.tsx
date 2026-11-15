@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react"
+import type { CSSProperties, KeyboardEvent } from "react"
 import type { WhatIf as Slider } from "@/domain/calendar"
 
 export type Lang = "es" | "en"
@@ -41,6 +41,8 @@ export function WhatIf({ whatIf, onWhatIf, lang = "es" }: Props) {
               type="button"
               role="radio"
               aria-checked={checked}
+              tabIndex={checked ? 0 : -1}
+              onKeyDown={moveRadioSelection}
               onClick={() => onWhatIf({ dT: choice.dT, rainFactor: whatIf.rainFactor })}
               style={choiceStyle(checked)}
             >
@@ -58,6 +60,8 @@ export function WhatIf({ whatIf, onWhatIf, lang = "es" }: Props) {
               type="button"
               role="radio"
               aria-checked={checked}
+              tabIndex={checked ? 0 : -1}
+              onKeyDown={moveRadioSelection}
               onClick={() => onWhatIf({ dT: whatIf.dT, rainFactor: choice.rainFactor })}
               style={choiceStyle(checked)}
             >
@@ -68,6 +72,22 @@ export function WhatIf({ whatIf, onWhatIf, lang = "es" }: Props) {
       </div>
     </div>
   )
+}
+
+function moveRadioSelection(event: KeyboardEvent<HTMLButtonElement>) {
+  const forward = event.key === "ArrowRight" || event.key === "ArrowDown"
+  const backward = event.key === "ArrowLeft" || event.key === "ArrowUp"
+  if (!forward && !backward) return
+
+  event.preventDefault()
+  const button = event.currentTarget
+  const next = forward
+    ? button.nextElementSibling ?? button.parentElement?.firstElementChild
+    : button.previousElementSibling ?? button.parentElement?.lastElementChild
+  if (next instanceof HTMLButtonElement) {
+    next.focus()
+    next.click()
+  }
 }
 
 const groupStyle: CSSProperties = {

@@ -140,6 +140,33 @@ export default function Page() {
     document.getElementById('plantings')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
 
+  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    if (event.altKey || event.ctrlKey || event.metaKey) return
+
+    let nextIndex: number
+    switch (event.key) {
+      case 'ArrowLeft':
+        nextIndex = (index + tabs.length - 1) % tabs.length
+        break
+      case 'ArrowRight':
+        nextIndex = (index + 1) % tabs.length
+        break
+      case 'Home':
+        nextIndex = 0
+        break
+      case 'End':
+        nextIndex = tabs.length - 1
+        break
+      default:
+        return
+    }
+
+    event.preventDefault()
+    const next = tabs[nextIndex]
+    setTab(next)
+    event.currentTarget.ownerDocument.getElementById(`tab-${next}`)?.focus()
+  }
+
   return (
     <main
       id="column"
@@ -173,7 +200,7 @@ export default function Page() {
         </div>
       </header>
       <div role="tablist" aria-label={copy.sections} className="mt-8 grid grid-cols-3 gap-1 rounded-full bg-sand p-1">
-        {tabs.map((id) => (
+        {tabs.map((id, index) => (
           <button
             key={id}
             id={`tab-${id}`}
@@ -184,12 +211,13 @@ export default function Page() {
             tabIndex={tab === id ? 0 : -1}
             className={tabClass(tab === id)}
             onClick={() => setTab(id)}
+            onKeyDown={(event) => handleTabKeyDown(event, index)}
           >
             {copy.tabs[id]}
           </button>
         ))}
       </div>
-      <div role="tabpanel" id="tab-panel" aria-labelledby={`tab-${tab}`} className="mt-5 grid gap-6">
+      <div role="tabpanel" id="tab-panel" aria-labelledby={`tab-${tab}`} tabIndex={0} className={`mt-5 grid gap-6 ${focusRing}`}>
         {tab === 'hoy' && (
           <>
             {card && status ? (

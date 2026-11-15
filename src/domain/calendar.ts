@@ -182,6 +182,7 @@ export const SCORE_RULES = deepFreeze({
     dryBelowMm: 1,
     lookbackDays: 21,
     weekDays: 7,
+    maxObservationAgeDays: 3,
     altoRun: 7,
     medioRun: 4,
     altoWeek: 0.4,
@@ -216,7 +217,7 @@ export type AdviceInput = {
   today: CalendarDay
   logs: readonly CropLog[]
   climatology: Climatology
-  daily: DailySeries
+  daily: DailySeries | null
   soil: Soil
   whatIf: WhatIf
   lang: Lang
@@ -226,12 +227,14 @@ export type TodayCard =
   | {
       kind: 'plant'
       cropId: CropId
+      suit: Suit
       irrigation: boolean
       sentence: string
     }
   | {
       kind: 'wait'
       cropId: CropId
+      suit: Exclude<Suit, 'green'>
       reason: 'seca' | 'canicula' | 'window'
       sentence: string
     }
@@ -279,7 +282,7 @@ export type CycleStatus = {
   mark: PhaseMark
   sentence: string
   onset: OnsetReport
-  drySpell: DrySpell
+  drySpell: DrySpell | null
 }
 
 export type RotationInput = {
@@ -290,7 +293,7 @@ export type RotationInput = {
   whatIf: WhatIf
 }
 
-export type Rotation = { cropId: CropId; suit: number; band: Suit }
+export type Rotation = { cropId: CropId; previousCropId: CropId; suit: number; band: Suit }
 
 export type SoilHealth = {
   score: number | null
@@ -506,12 +509,12 @@ function onsetDoy(year: number, map: Map<string, DailyObservation>): number | nu
   return null
 }
 
-function onsetReport(series: DailySeries, lang: Lang): OnsetReport {
-  const yearsInSeries = [...new Set(series.days.map((day) => day.date.year))]
-    .filter((year) => yearComplete(year, series.validThrough))
+function onsetReport(series: DailySeries | null, lang: Lang): OnsetReport {
+  const yearsInSeries = [...new Set((series?.days ?? []).map((day) => day.date.year))]
+    .filter((year) => series !== null && yearComplete(year, series.validThrough))
     .sort((a, b) => a - b)
     .slice(-SCORE_RULES.onset.sampleYears)
-  const map = observationMap(series.days)
+  const map = observationMap(series?.days ?? [])
   const onsets: number[] = []
   for (const year of yearsInSeries) {
     const doy = onsetDoy(year, map)
@@ -542,18 +545,31 @@ function onsetReport(series: DailySeries, lang: Lang): OnsetReport {
   return { ...report, sentence: onsetSentence(lang, report) }
 }
 
-function drySpell(today: CalendarDay, series: DailySeries, climatology: Climatology, lang: Lang): DrySpell {
+function drySpell(today: CalendarDay, series: DailySeries, climatology: Climatology, lang: Lang): DrySpell | null {
   const rules = SCORE_RULES.drySpell
-  const recent = [...series.days].sort((a, b) => compareDay(a.date, b.date)).slice(-rules.lookbackDays)
+  const recent = [...series.days].sort((a, b) => compareDay(a.date, b.date))
+  const latest = recent.at(-1)
+  if (!latest || compareDay(latest.date, series.validThrough) !== 0) return null
+  const age = daysFrom(latest.date, today)
+  if (age < 0 || age > rules.maxObservationAgeDays) return null
+
+  const consecutive: DailyObservation[] = [latest]
+  for (let index = recent.length - 2; index >= 0 && consecutive.length < rules.lookbackDays; index -= 1) {
+    const earlier = recent[index]
+    const later = consecutive[consecutive.length - 1]
+    if (!earlier || !later || daysFrom(earlier.date, later.date) !== 1) break
+    consecutive.push(earlier)
+  }
+  if (consecutive.length < rules.weekDays) return null
+
   let run = 0
-  for (let index = recent.length - 1; index >= 0; index -= 1) {
-    const rain = recent[index]?.rainMm ?? 0
+  for (const day of consecutive) {
+    const rain = day.rainMm
     if (rain < rules.dryBelowMm) run += 1
     else break
   }
-  const week = recent.slice(-rules.weekDays)
-  const weekMm = week.reduce((sum, day) => sum + day.rainMm, 0)
-  const climWeekMm = climatology.months[today.month - 1].prectotcorrMmDay * rules.weekDays
+  const weekMm = consecutive.slice(0, rules.weekDays).reduce((sum, day) => sum + day.rainMm, 0)
+  const climWeekMm = climatology.months[latest.date.month - 1].prectotcorrMmDay * rules.weekDays
   let level: DryLevel = 'bajo'
   if (run >= rules.altoRun || weekMm <= rules.altoWeek * climWeekMm) level = 'alto'
   else if (run >= rules.medioRun || weekMm <= rules.medioWeek * climWeekMm) level = 'medio'
@@ -599,7 +615,7 @@ type Reading = {
   label: PhaseMark['label']
   irrigation: boolean
   closesIn: number
-  dry: DrySpell
+  dry: DrySpell | null
 }
 
 function reading(input: AdviceInput): Reading {
@@ -614,7 +630,7 @@ function reading(input: AdviceInput): Reading {
     label: seasonLabel(span.phase, input.today.month, irrigation),
     irrigation,
     closesIn: daysUntilWindowCloses(input, score.cropId, span),
-    dry: drySpell(input.today, input.daily, input.climatology, input.lang),
+    dry: input.daily ? drySpell(input.today, input.daily, input.climatology, input.lang) : null,
   }
 }
 
@@ -670,7 +686,7 @@ function cardSentence(lang: Lang, state: Reading): string {
       ? 'Wait a few days. This is the dry season. The next planting is Primera, in May.'
       : 'Esperá unos días. Ahora es época seca. La próxima siembra es la Primera, en mayo.'
   }
-  if (state.span.phase !== 'seca' && state.score.band !== 'green' && state.dry.level === 'alto') {
+  if (state.span.phase !== 'seca' && state.score.band !== 'green' && state.dry?.level === 'alto') {
     return lang === 'en'
       ? 'Wait a few days. A short dry spell (canícula) is coming. Do not plant yet.'
       : 'Esperá unos días. Viene un tiempo seco (canícula). No sembrés todavía.'
@@ -687,10 +703,10 @@ export function todayCard(input: AdviceInput): TodayCard {
   const state = reading(input)
   const sentence = cardSentence(input.lang, state)
   if (state.score.band === 'green') {
-    return { kind: 'plant', cropId: state.score.cropId, irrigation: state.irrigation, sentence }
+    return { kind: 'plant', cropId: state.score.cropId, suit: state.score.band, irrigation: state.irrigation, sentence }
   }
-  const reason = state.span.phase === 'seca' ? 'seca' : state.dry.level === 'alto' ? 'canicula' : 'window'
-  return { kind: 'wait', cropId: state.score.cropId, reason, sentence }
+  const reason = state.span.phase === 'seca' ? 'seca' : state.dry?.level === 'alto' ? 'canicula' : 'window'
+  return { kind: 'wait', cropId: state.score.cropId, suit: state.score.band, reason, sentence }
 }
 
 function rowNow(month: MonthNo, from: MonthNo, through: MonthNo): boolean {
@@ -830,7 +846,7 @@ export function nextRotation(input: RotationInput): Rotation | null {
   const other = ranked[1]
   if (pick && other && pick.cropId === last.cropId && other.band !== 'red') pick = other
   if (!pick) return null
-  return { cropId: pick.cropId, suit: pick.suit, band: pick.band }
+  return { cropId: pick.cropId, previousCropId: last.cropId, suit: pick.suit, band: pick.band }
 }
 
 function socPoints(socGkg: number): number {

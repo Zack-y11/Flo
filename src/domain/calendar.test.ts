@@ -362,7 +362,7 @@ function dryStatus(rains: number[]) {
     )
   })
   const today: CalendarDay = { year: 2026, month: 11, day: 15 }
-  return cycleStatus({
+  const result = cycleStatus({
     today,
     logs: [],
     climatology: yearClimate(24, 1),
@@ -371,6 +371,8 @@ function dryStatus(rains: number[]) {
     whatIf: steady,
     lang: 'es',
   }).drySpell
+  if (!result) throw new Error('expected a full recent week')
+  return result
 }
 
 test('dry spell level follows the trailing run when the week is wet', () => {
@@ -390,6 +392,66 @@ test('dry spell level follows the trailing run when the week is wet', () => {
   assert.ok(bajo.weekMm > 0.7 * bajo.climWeekMm)
   assert.equal(bajo.level, 'bajo')
 })
+
+test('dry spell is missing when the recent week is short, gapped, or stale', () => {
+  assert.equal(dryStatusOrMissing([0, 0, 0, 0, 0, 0]), null)
+
+  const today: CalendarDay = { year: 2026, month: 11, day: 15 }
+  const gappedDays = [0, 1, 2, 4, 5, 6, 7].map((offset) =>
+    observe({ year: 2026, month: 11, day: 8 + offset }, 0),
+  )
+  assert.equal(dryStatusFor(gappedDays, today, today), null)
+
+  const staleThrough: CalendarDay = { year: 2026, month: 11, day: 10 }
+  const staleDays = Array.from({ length: 7 }, (_, index) =>
+    observe({ year: 2026, month: 11, day: 4 + index }, 0),
+  )
+  assert.equal(dryStatusFor(staleDays, staleThrough, today), null)
+})
+
+test('missing rainfall does not invent a dry spell or a canicula warning', () => {
+  const today: CalendarDay = { year: 2026, month: 5, day: 15 }
+  const input = {
+    today,
+    logs: [],
+    climatology: yearClimate(10, 1),
+    daily: null,
+    soil: measured(6.5),
+    whatIf: steady,
+    lang: 'es' as const,
+  }
+  const card = todayCard(input)
+  const cycle = cycleStatus(input)
+  assert.equal(cycle.drySpell, null)
+  assert.equal(cycle.onset.years, 0)
+  assert.equal(card.kind, 'wait')
+  if (card.kind === 'wait') assert.equal(card.reason, 'window')
+})
+
+function dryStatusFor(days: DailyObservation[], validThrough: CalendarDay, today: CalendarDay) {
+  return cycleStatus({
+    today,
+    logs: [],
+    climatology: yearClimate(24, 1),
+    daily: { days, validThrough },
+    soil: measured(6.5),
+    whatIf: steady,
+    lang: 'es',
+  }).drySpell
+}
+
+function dryStatusOrMissing(rains: number[]) {
+  const end = Date.UTC(2026, 10, 15)
+  const today: CalendarDay = { year: 2026, month: 11, day: 15 }
+  const days = rains.map((rainMm, index) => {
+    const date = new Date(end - (rains.length - 1 - index) * 86_400_000)
+    return observe(
+      { year: date.getUTCFullYear(), month: (date.getUTCMonth() + 1) as MonthNo, day: date.getUTCDate() },
+      rainMm,
+    )
+  })
+  return dryStatusFor(days, today, today)
+}
 
 test('a maize log suggests frijol or canavalia and does not repeat maize', () => {
   const soil = measured(6.5)

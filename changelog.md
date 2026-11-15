@@ -189,3 +189,9 @@ Use one block per discovery, decision, or introduced change:
 - Message time: 2026-11-15T16:28:13-06:00 (2026-11-15T22:28:13Z).
 - Message: “Integrated and validated PR-logs, PR-map, PR-outlook, and PR-datos at `1d6eca0`: all 68 tests, typecheck, and build pass; fresh code reviews pass and our commits have no Cursor coauthor trailer. The required live artifacts and aligned feature-stack parents remain outstanding.”
 - Evidence: commit `1d6eca03c1db62d62408a9939b12445ed509f798`; `npm test` (21 domain, 24 server, 23 UI tests); `npm run typecheck`; `npm run build`; four read-only reviews at the same head; `docs/build-plan.md` verification and stack criteria; remote branches `pr-domain` through `pr-today`.
+
+### 2026-11-15T16:30:00-06:00 — root — change
+- Scope: PR-outlook onset data path and loading state.
+- Message time: 2026-11-15T16:30:00-06:00 (2026-11-15T22:30:00Z).
+- Message: “Onset now uses up to 15 complete daily onset windows, normalizes leap-year dates, and separates loading from confirmed missing data.”
+- Evidence: commit `1d6eca03c1db62d62408a9939b12445ed509f798`; regression tests in `src/domain/calendar.test.ts`, `src/client/use-field-session.test.tsx`, and `src/ui/outlook.test.tsx`.

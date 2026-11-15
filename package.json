@@ -2,10 +2,11 @@
   "name": "flo",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.26.1",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "test": "npm run test:domain && npm run test:server && npm run test:ui",
+    "test": "pnpm run test:domain && pnpm run test:server && pnpm run test:ui",
     "test:domain": "node --test src/domain/calendar.test.ts src/domain/field.test.ts",
     "test:server": "node --import tsx --test --test-concurrency=1 src/server/nasa.test.ts src/state/store.test.ts",
     "test:ui": "vitest run",

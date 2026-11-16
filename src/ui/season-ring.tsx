@@ -59,8 +59,14 @@ export function SeasonRing({
   const hereLabel = lang === 'es' ? 'estás aquí' : 'you are here'
 
   return (
-    <figure style={{ margin: 0, display: 'flex', justifyContent: 'center' }}>
-      <svg role="img" aria-label={`${name}. ${dayLine}.`} viewBox="0 0 280 280" width="280" height="280">
+    <figure style={{ margin: 0, width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <svg
+        role="img"
+        aria-label={`${name}. ${dayLine}.`}
+        viewBox="-48 -48 376 376"
+        width="100%"
+        style={{ display: 'block', width: '100%', maxWidth: 560, height: 'auto' }}
+      >
         {arcs.map((arc) => (
           <path
             key={arc.id}

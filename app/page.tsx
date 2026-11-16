@@ -34,6 +34,23 @@ type TabId = keyof ShellCopy['tabs']
 
 const tabs: readonly TabId[] = ['hoy', 'year', 'field']
 
+function useWideDesk() {
+  const [wide, setWide] = useState(false)
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return
+    const query = window.matchMedia('(min-width: 1024px)')
+    const update = () => setWide(query.matches)
+    update()
+    query.addEventListener('change', update)
+    window.addEventListener('resize', update)
+    return () => {
+      query.removeEventListener('change', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+  return wide
+}
+
 const focusRing =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage'
 
@@ -48,6 +65,7 @@ export default function Page() {
   const [state, setState] = useState<AppState>(defaultState)
   const [tab, setTab] = useState<TabId>('hoy')
   const [today, setToday] = useState(localToday)
+  const wide = useWideDesk()
 
   useEffect(() => {
     let midnightTimer: number | undefined
@@ -167,10 +185,26 @@ export default function Page() {
     event.currentTarget.ownerDocument.getElementById(`tab-${next}`)?.focus()
   }
 
+  const parcelMap = (
+    <MapSheet
+      field={state.field}
+      lang={state.lang}
+      status={fieldSession.mapStatus}
+      onPointAttempt={fieldSession.onPointAttempt}
+      onConfirm={() => setTab('hoy')}
+      methodHref="/datos"
+    />
+  )
+
   return (
+    <div
+      id="desk"
+      data-wide={wide ? 'yes' : 'no'}
+      className="mx-auto min-h-screen w-full max-w-[560px] bg-cream lg:max-w-[1120px] lg:grid lg:grid-cols-[minmax(0,36rem)_minmax(22rem,1fr)] lg:items-start lg:gap-8 lg:px-8"
+    >
     <main
       id="column"
-      className="mx-auto min-h-screen w-full max-w-[560px] bg-cream px-5 pb-16 pt-8 text-ink"
+      className="w-full px-5 pb-16 pt-8 text-ink"
     >
       <header>
         <div className="flex items-start justify-between gap-3">
@@ -268,14 +302,7 @@ export default function Page() {
         )}
         {tab === 'field' && (
           <>
-            <MapSheet
-              field={state.field}
-              lang={state.lang}
-              status={fieldSession.mapStatus}
-              onPointAttempt={fieldSession.onPointAttempt}
-              onConfirm={() => setTab('hoy')}
-              methodHref="/datos"
-            />
+            {wide ? null : parcelMap}
             {health.score !== null && state.logs.length > 0 ? (
               <p className="text-sm text-ink/70">
                 {state.lang === 'es' ? 'Salud del suelo' : 'Soil health'}: {Math.round(health.score)} / 100
@@ -293,6 +320,8 @@ export default function Page() {
         </Link>
       </footer>
     </main>
+    {wide ? <aside className="px-5 pb-16 pt-8 lg:sticky lg:top-0 lg:px-0">{parcelMap}</aside> : null}
+    </div>
   )
 }
 

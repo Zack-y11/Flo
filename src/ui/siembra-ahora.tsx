@@ -1,25 +1,15 @@
 import { useId } from 'react'
-import type { CropId, Lang, PhaseMark, Suit, TodayCard } from '@/domain/calendar'
-import { SeasonRing } from './season-ring'
+import type { CropId, Lang, PhaseMark, TodayCard } from '@/domain/calendar'
+import { SeasonTimeline } from './season-timeline'
 import { StatusBubble } from './status-bubble'
-
-const SUIT_NAME = {
-  es: { green: 'Verde', yellow: 'Amarillo', red: 'Rojo' },
-  en: { green: 'Green', yellow: 'Yellow', red: 'Red' },
-} satisfies Record<Lang, Record<Suit, string>>
-
-const CHIP_COLOR: Record<Suit, string> = {
-  green: '#AFF3B5',
-  yellow: '#AC6304',
-  red: '#B02422',
-}
+import { BAND_COLOR, BAND_GLYPH, BAND_LABEL, CARD, INK, PAPER } from './tokens'
 
 function tone(card: TodayCard) {
   switch (card.kind) {
     case 'plant':
       return { background: '#1E5E2F', color: '#FFFFFF' }
     case 'wait':
-      return { background: '#FFDCC0', color: '#2D1600' }
+      return { background: '#FFE9D6', color: '#2D1600' }
     default: {
       const unreachable: never = card
       throw new Error(unreachable)
@@ -51,76 +41,88 @@ export function SiembraAhora({
 }) {
   const sentenceId = useId()
   const colors = tone(card)
-  const chip = CHIP_COLOR[card.suit]
   const listen = lang === 'es' ? 'Escuchar' : 'Listen'
   const listenLabel = lang === 'es' ? 'Escuchar consejo en voz alta' : 'Listen to this advice aloud'
   const register = lang === 'es' ? 'Registrar siembra' : 'Record a planting'
+  const button = {
+    minHeight: 56,
+    borderRadius: 999,
+    fontSize: 18,
+    fontWeight: 700,
+    cursor: 'pointer',
+  } as const
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <article
         data-kind={card.kind}
         data-suit={card.suit}
         style={{
           background: colors.background,
           color: colors.color,
-          borderRadius: 32,
+          borderRadius: 28,
           padding: 24,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
         }}
       >
-        <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10, fontSize: 18, fontWeight: 700 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          {card.cropId ? <span style={{ fontSize: 20, fontWeight: 700 }}>{cropLabels[card.cropId]}</span> : <span />}
           <span
-            data-suit-chip=""
             style={{
-              width: 18,
-              height: 18,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '4px 12px 4px 6px',
               borderRadius: 999,
-              background: chip,
-              display: 'inline-block',
+              background: CARD,
+              color: INK,
+              fontSize: 15,
+              fontWeight: 700,
             }}
-          />
-          {SUIT_NAME[lang][card.suit]}
-        </p>
-        {card.cropId ? (
-          <p style={{ margin: '16px 0 0', fontSize: 22, fontWeight: 700 }}>{cropLabels[card.cropId]}</p>
-        ) : null}
-        <p id={sentenceId} style={{ margin: '12px 0 0', fontSize: 32, fontWeight: 800, lineHeight: 1.25 }}>
+          >
+            <span
+              data-suit-chip=""
+              aria-hidden="true"
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: 999,
+                background: BAND_COLOR[card.suit],
+                color: card.suit === 'yellow' ? INK : '#FFFFFF',
+                display: 'inline-grid',
+                placeItems: 'center',
+                fontSize: 13,
+              }}
+            >
+              {BAND_GLYPH[card.suit]}
+            </span>
+            {BAND_LABEL[lang][card.suit]}
+          </span>
+        </div>
+        <p id={sentenceId} style={{ margin: 0, fontSize: 28, fontWeight: 800, lineHeight: 1.25 }}>
           {card.sentence}
         </p>
       </article>
-      <button
-        type="button"
-        aria-label={listenLabel}
-        aria-describedby={sentenceId}
-        onClick={() => speak(card.sentence, lang)}
-        style={{
-          minHeight: 72,
-          border: 0,
-          borderRadius: 999,
-          background: '#894D00',
-          color: '#FFFFFF',
-          fontSize: 24,
-          fontWeight: 700,
-          fontFamily: 'inherit',
-        }}
-      >
-        {listen}
-      </button>
-      <button
-        type="button"
-        onClick={onRegister}
-        style={{
-          minHeight: 72,
-          border: 0,
-          borderRadius: 999,
-          background: '#2C6B3A',
-          color: '#FFFFFF',
-          fontSize: 22,
-          fontWeight: 700,
-          fontFamily: 'inherit',
-        }}
-      >
-        {register}
-      </button>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <button
+          type="button"
+          aria-label={listenLabel}
+          aria-describedby={sentenceId}
+          onClick={() => speak(card.sentence, lang)}
+          style={{ ...button, border: `2px solid ${INK}`, background: 'transparent', color: INK }}
+        >
+          <span aria-hidden="true">🔊 </span>
+          {listen}
+        </button>
+        <button
+          type="button"
+          onClick={onRegister}
+          style={{ ...button, border: 0, background: '#2C6B3A', color: '#FFFFFF' }}
+        >
+          {register}
+        </button>
+      </div>
     </div>
   )
 }
@@ -151,20 +153,18 @@ export function Hoy({
         maxWidth: 640,
         marginInline: 'auto',
         boxSizing: 'border-box',
-        background: '#FAF6EE',
-        color: '#151E15',
+        background: PAPER,
+        color: INK,
         display: 'flex',
         flexDirection: 'column',
-        gap: 20,
-        padding: 20,
-        fontFamily: '"Lexend", "Segoe UI", sans-serif',
+        gap: 24,
       }}
     >
       {ready ? (
         <>
-          <SeasonRing seasonId={mark.phase} dayIndex={mark.dayOfPhase} lang={lang} />
-          <StatusBubble sentence={statusSentence} lang={lang} />
           <SiembraAhora card={card} lang={lang} cropLabels={cropLabels} onRegister={onRegister} />
+          <SeasonTimeline seasonId={mark.phase} dayIndex={mark.dayOfPhase} lang={lang} />
+          <StatusBubble sentence={statusSentence} lang={lang} />
         </>
       ) : (
         <p role="status">{lang === 'es' ? 'Cargando los datos de la parcela…' : 'Loading plot data…'}</p>

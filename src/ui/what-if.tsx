@@ -1,4 +1,4 @@
-import type { CSSProperties, KeyboardEvent } from "react"
+import { useId, type CSSProperties, type KeyboardEvent } from "react"
 import type { WhatIf as Slider } from "@/domain/calendar"
 
 export type Lang = "es" | "en"
@@ -6,8 +6,18 @@ export type Lang = "es" | "en"
 export const DEFAULT_WHAT_IF: Slider = { dT: 0, rainFactor: 1 }
 
 const COPY = {
-  es: { temperature: "Temperatura", rain: "Lluvia" },
-  en: { temperature: "Temperature", rain: "Rain" },
+  es: {
+    title: "¿Y si el clima cambia?",
+    hint: "Probá con más calor o menos lluvia y mirá cómo cambian los colores del calendario.",
+    temperature: "Temperatura",
+    rain: "Lluvia",
+  },
+  en: {
+    title: "What if the climate changes?",
+    hint: "Try warmer weather or less rain and see how the calendar colors change.",
+    temperature: "Temperature",
+    rain: "Rain",
+  },
 } as const
 
 const TEMPERATURES = [
@@ -30,9 +40,15 @@ type Props = {
 
 export function WhatIf({ whatIf, onWhatIf, lang = "es" }: Props) {
   const copy = COPY[lang]
+  const id = useId()
   return (
-    <div style={{ display: "grid", gap: 12 }}>
-      <div role="radiogroup" aria-label={copy.temperature} style={groupStyle}>
+    <div style={{ display: "grid", gap: 10, padding: 16, borderRadius: 16, background: "#FFFFFF" }}>
+      <div>
+        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>{copy.title}</h3>
+        <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.45, color: "var(--color-muted)" }}>{copy.hint}</p>
+      </div>
+      <span id={`${id}-t`} style={groupLabelStyle}>{copy.temperature}</span>
+      <div role="radiogroup" aria-labelledby={`${id}-t`} style={groupStyle}>
         {TEMPERATURES.map((choice) => {
           const checked = whatIf.dT === choice.dT
           return (
@@ -51,7 +67,8 @@ export function WhatIf({ whatIf, onWhatIf, lang = "es" }: Props) {
           )
         })}
       </div>
-      <div role="radiogroup" aria-label={copy.rain} style={groupStyle}>
+      <span id={`${id}-r`} style={groupLabelStyle}>{copy.rain}</span>
+      <div role="radiogroup" aria-labelledby={`${id}-r`} style={groupStyle}>
         {RAINS.map((choice) => {
           const checked = whatIf.rainFactor === choice.rainFactor
           return (
@@ -90,6 +107,12 @@ function moveRadioSelection(event: KeyboardEvent<HTMLButtonElement>) {
   }
 }
 
+const groupLabelStyle: CSSProperties = {
+  fontSize: 14,
+  fontWeight: 600,
+  marginBottom: -4,
+}
+
 const groupStyle: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(3, 1fr)",
@@ -103,7 +126,9 @@ function choiceStyle(checked: boolean): CSSProperties {
     padding: "10px 8px",
     font: "inherit",
     cursor: "pointer",
-    background: checked ? "#45664e" : "#e7f0ea",
-    color: checked ? "#ffffff" : "#1c1915",
+    minHeight: 44,
+    fontWeight: checked ? 700 : 400,
+    background: checked ? "var(--color-sage)" : "#e7f0ea",
+    color: checked ? "#ffffff" : "var(--color-ink)",
   }
 }

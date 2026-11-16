@@ -1,4 +1,5 @@
 import type { Lang } from '@/domain/calendar'
+import { CARD, INK } from './tokens'
 
 export function StatusBubble({
   sentence,
@@ -12,13 +13,12 @@ export function StatusBubble({
       lang={lang}
       style={{
         margin: 0,
-        padding: '20px 22px',
-        borderRadius: 28,
-        background: '#FFFFFF',
-        color: '#151E15',
-        fontSize: 24,
-        lineHeight: 1.45,
-        fontFamily: '"Lexend", "Segoe UI", sans-serif',
+        padding: '14px 18px',
+        borderRadius: 20,
+        background: CARD,
+        color: INK,
+        fontSize: 16,
+        lineHeight: 1.5,
       }}
     >
       {sentence}

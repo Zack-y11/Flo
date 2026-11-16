@@ -17,8 +17,8 @@ test('shows the onset window, confidence, dry-spell level, and disclaimer', () =
   )
 
   expect(screen.getByRole('heading', { name: 'Inicio de las lluvias' })).toBeTruthy()
-  expect(screen.getByText(/Ventana histórica:/)).toBeTruthy()
-  expect(screen.getByText(/Fecha mediana:/)).toBeTruthy()
+  expect(screen.getByText(/las lluvias suelen empezar entre/)).toBeTruthy()
+  expect(screen.getByText(/La fecha más común es el/)).toBeTruthy()
   expect(screen.getByText(/Confianza alta/)).toBeTruthy()
   expect(screen.getByText('Medio')).toBeTruthy()
   expect(screen.getByText(/No es un pronóstico/)).toBeTruthy()
@@ -73,7 +73,7 @@ test('translates both outlooks in English', () => {
   )
 
   expect(screen.getByRole('heading', { name: 'Start of the rainy season' })).toBeTruthy()
-  expect(screen.getByText(/Historical window:/)).toBeTruthy()
+  expect(screen.getByText(/the rains usually start between/)).toBeTruthy()
   expect(screen.getByText(/Medium confidence/)).toBeTruthy()
   expect(screen.getByText('High')).toBeTruthy()
   expect(screen.getByText(/This is not a forecast/)).toBeTruthy()

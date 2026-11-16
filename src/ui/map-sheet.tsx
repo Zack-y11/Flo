@@ -80,7 +80,7 @@ export const plotMapView = {
   minZoom: 8,
   maxZoom: 18,
   scrollWheelZoom: true,
-  tileUrl: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  tileUrl: `https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(process.env.NEXT_PUBLIC_CARTO_API_KEY ?? '')}`,
   attribution: '&copy; OpenStreetMap &copy; CARTO',
 }
 

@@ -82,7 +82,7 @@ test('Hoy renders dry-season advice for 15 Nov 2026 with the maize oracle climat
   const article = within(screen.getByRole('article'))
   const waitSentence = 'Esperá unos días. Ahora es época seca. La próxima siembra es la Primera, en mayo.'
   expect(article.getByText('Maíz')).toBeTruthy()
-  expect(article.getByText('Amarillo')).toBeTruthy()
+  expect(article.getByText('Regular')).toBeTruthy()
   expect(article.getByText(waitSentence)).toBeTruthy()
 
   fireEvent.click(screen.getByRole('button', { name: 'Escuchar consejo en voz alta' }))
@@ -113,7 +113,7 @@ test('Hoy labels a planting card with the shared crop name and selected band', (
 
   expect(screen.getByRole('region', { name: 'Today' })).toBeTruthy()
   expect(screen.getByText('Maize')).toBeTruthy()
-  expect(screen.getByText('Green')).toBeTruthy()
+  expect(screen.getByText('Good time')).toBeTruthy()
   expect(screen.getByText('Today: plant maize.')).toBeTruthy()
   expect(screen.getByRole('button', { name: 'Record a planting' })).toBeTruthy()
 })

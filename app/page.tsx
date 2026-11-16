@@ -207,10 +207,7 @@ export default function Page() {
       className="w-full px-5 pb-16 pt-8 text-ink"
     >
       <header>
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="m-0 min-w-0 text-[1.75rem] font-semibold leading-8">{copy.wordmark}</h1>
-          <PersonMark />
-        </div>
+        <h1 className="m-0 min-w-0 text-[1.75rem] font-semibold leading-8">{copy.wordmark}</h1>
         <div className="mt-5 flex items-center justify-between gap-3">
           <div role="group" aria-label={copy.language} className="flex shrink-0 gap-1">
             <LangButton
@@ -227,9 +224,14 @@ export default function Page() {
           <button
             type="button"
             onClick={() => setTab('field')}
-            className={`min-w-0 truncate rounded-lg text-right text-sm leading-5 underline underline-offset-4 ${focusRing}`}
+            aria-label={`${state.field.label}. ${state.lang === 'es' ? 'Cambiar parcela' : 'Change plot'}`}
+            className={`flex min-w-0 items-center gap-1.5 rounded-full border border-sand bg-white px-3 py-1.5 text-sm leading-5 ${focusRing}`}
           >
-            {state.field.label}
+            <PinMark />
+            <span className="min-w-0 truncate">{state.field.label}</span>
+            <span aria-hidden="true" className="shrink-0 font-semibold text-sage">
+              · {state.lang === 'es' ? 'Cambiar' : 'Change'}
+            </span>
           </button>
         </div>
       </header>
@@ -295,6 +297,7 @@ export default function Page() {
                 whatIf={state.whatIf}
                 cropLabels={labels}
                 lang={state.lang}
+                currentMonth={today.month}
                 onWhatIf={(whatIf) => dispatch({ type: 'setWhatIf', whatIf })}
               />
             ) : null}
@@ -308,9 +311,6 @@ export default function Page() {
                 {state.lang === 'es' ? 'Salud del suelo' : 'Soil health'}: {Math.round(health.score)} / 100
               </p>
             ) : null}
-            <Link href="/datos" className={`text-center text-sm font-semibold text-sage underline underline-offset-4 ${focusRing}`}>
-              {state.lang === 'es' ? 'Datos y método' : 'Data and method'}
-            </Link>
           </>
         )}
       </div>
@@ -389,16 +389,16 @@ function tabClass(active: boolean): string {
   return active ? `${base} bg-cream` : base
 }
 
-function PersonMark() {
+function PinMark() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="mt-1 h-9 w-9 shrink-0 text-sage" fill="none">
-      <circle cx="12" cy="8" r="3.25" stroke="currentColor" strokeWidth="1.75" />
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-sage" fill="none">
       <path
-        d="M5.5 19.25c1.4-3 3.7-4.5 6.5-4.5s5.1 1.5 6.5 4.5"
+        d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"
         stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
+        strokeWidth="2"
+        strokeLinejoin="round"
       />
+      <circle cx="12" cy="10" r="2.25" fill="currentColor" />
     </svg>
   )
 }

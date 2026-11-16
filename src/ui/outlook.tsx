@@ -12,8 +12,8 @@ const copy = {
   es: {
     heading: 'Ritmos de tu parcela',
     onsetTitle: 'Inicio de las lluvias',
-    window: 'Ventana histórica',
-    median: 'Fecha mediana',
+    window: 'En tu zona, las lluvias suelen empezar entre',
+    median: 'La fecha más común es el',
     confidence: { alta: 'Confianza alta', media: 'Confianza media', baja: 'Confianza baja' },
     onsetMissing: 'No hay años suficientes para estimar cuándo suelen empezar las lluvias.',
     loading: 'Cargando datos de lluvia…',
@@ -25,8 +25,8 @@ const copy = {
   en: {
     heading: 'Your plot’s rainfall patterns',
     onsetTitle: 'Start of the rainy season',
-    window: 'Historical window',
-    median: 'Median date',
+    window: 'Around your plot, the rains usually start between',
+    median: 'The most common date is',
     confidence: { alta: 'High confidence', media: 'Medium confidence', baja: 'Low confidence' },
     onsetMissing: 'There are too few years of data to estimate when the rains usually begin.',
     loading: 'Loading rainfall data…',
@@ -88,11 +88,11 @@ export function Outlook({ lang, data }: OutlookProps) {
         {onset && onset.p25Doy !== null && onset.p75Doy !== null ? (
           <>
             <p className="text-sm leading-relaxed">
-              {text.window}: {dates.formatRange(dateForDoy(onset.p25Doy), dateForDoy(onset.p75Doy))}
+              {text.window} {dates.formatRange(dateForDoy(onset.p25Doy), dateForDoy(onset.p75Doy))}.
               <span className="font-semibold text-[#34543f]"> · {text.confidence[onset.confidence]}</span>
             </p>
             {onset.medianDoy !== null && (
-              <p className="text-sm leading-relaxed">{text.median}: {dates.format(dateForDoy(onset.medianDoy))}</p>
+              <p className="text-sm leading-relaxed">{text.median} {dates.format(dateForDoy(onset.medianDoy))}.</p>
             )}
           </>
         ) : (

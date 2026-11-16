@@ -26,7 +26,7 @@ const es = {
   title: 'Mapa de parcela',
   country: 'El Salvador',
   confirmTitle: 'Confirmar parcela',
-  pick: 'Tocá el mapa para mover el pin.',
+  pick: 'Elegí el punto en el mapa.',
   mapLoading: 'Cargando mapa…',
   keyboard: 'Usá las flechas para mover el mapa y Enter para elegir el centro.',
   selected: 'Ubicación seleccionada',
@@ -52,7 +52,7 @@ const messages = {
     title: 'Plot map',
     country: 'El Salvador',
     confirmTitle: 'Confirm plot',
-    pick: 'Tap the map to move the pin.',
+    pick: 'Choose the point on the map.',
     mapLoading: 'Loading map…',
     keyboard: 'Use the arrow keys to pan the map and Enter to choose its center.',
     selected: 'Selected location',
@@ -75,6 +75,15 @@ const messages = {
 
 const buttonFocus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#45664e]'
 
+export const plotMapView = {
+  zoom: 13,
+  minZoom: 8,
+  maxZoom: 18,
+  scrollWheelZoom: true,
+  tileUrl: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  attribution: '&copy; OpenStreetMap &copy; CARTO',
+}
+
 // Simplified Natural Earth 1:50m Admin 0 v5.1.2 country boundary (public domain).
 const countryOutline: LatLngTuple[] = [
   [14.416, -89.363], [14.370, -89.121], [14.032, -88.708], [13.979, -88.513],
@@ -96,7 +105,7 @@ type PlotMapProps = {
 }
 
 const PlotMap = dynamic<PlotMapProps>(async () => {
-  const [{ control }, { MapContainer, CircleMarker, Polygon, useMapEvents }] = await Promise.all([
+  const [{ control }, { MapContainer, CircleMarker, Polygon, TileLayer, useMapEvents }] = await Promise.all([
     import('leaflet'),
     import('react-leaflet'),
   ])
@@ -146,19 +155,20 @@ const PlotMap = dynamic<PlotMapProps>(async () => {
     return (
       <MapContainer
         center={center}
-        zoom={7}
+        zoom={plotMapView.zoom}
         whenReady={props.onReady}
-        minZoom={6}
-        maxZoom={12}
+        minZoom={plotMapView.minZoom}
+        maxZoom={plotMapView.maxZoom}
         zoomControl={false}
-        attributionControl={false}
-        scrollWheelZoom={false}
+        doubleClickZoom={false}
+        scrollWheelZoom={plotMapView.scrollWheelZoom}
         className="relative h-full"
         style={{ backgroundColor: '#d2e1da' }}
       >
+        <TileLayer attribution={plotMapView.attribution} url={plotMapView.tileUrl} />
         <Polygon
           positions={countryOutline}
-          pathOptions={{ color: '#ffffff', weight: 2, fillColor: '#9ac5a2', fillOpacity: 0.65 }}
+          pathOptions={{ color: '#45664e', weight: 2, fillColor: '#9ac5a2', fillOpacity: 0.12 }}
           interactive={false}
         />
         <CircleMarker
@@ -263,7 +273,7 @@ export function MapSheet({ field, lang, status = 'idle', onPointAttempt, onConfi
         </p>
       </header>
 
-      <div className="relative isolate h-64 overflow-hidden rounded-2xl bg-[#d2e1da] shadow-sm sm:h-80">
+      <div className="relative isolate h-64 overflow-hidden rounded-2xl bg-[#d2e1da] shadow-sm sm:h-80 lg:h-[32rem]">
         {!mapReady && (
           <div role="status" className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-[#45664e]">
             {copy.mapLoading}
